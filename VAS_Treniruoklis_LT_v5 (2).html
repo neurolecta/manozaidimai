@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAS Treniruoklis</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff}
+.screen{display:none;width:100%;max-width:640px;padding:25px;flex-direction:column;align-items:center}
+.screen.active{display:flex}
+
+.btn{padding:14px 0;border:none;border-radius:50px;font-size:1.1em;cursor:pointer;font-weight:700;width:260px;transition:all .2s;letter-spacing:.5px}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-start{background:linear-gradient(135deg,#f9c74f,#f3722c);color:#1a1a2e;box-shadow:0 4px 20px rgba(249,199,79,.35)}
+.btn-start:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(249,199,79,.5)}
+.btn-info{background:rgba(255,255,255,.1);color:#90e0ef;border:2px solid rgba(144,224,239,.4)}
+.btn-info:hover{background:rgba(144,224,239,.15)}
+.btn-settings{background:rgba(255,255,255,.08);color:#ccc;border:2px solid rgba(255,255,255,.2)}
+.btn-settings:hover{background:rgba(255,255,255,.15)}
+.btn-exit{background:rgba(233,69,96,.15);color:#e94560;border:2px solid rgba(233,69,96,.3)}
+.btn-exit:hover{background:rgba(233,69,96,.25)}
+.btn-green{background:linear-gradient(135deg,#43aa8b,#2d9b72);color:#fff;box-shadow:0 4px 15px rgba(67,170,139,.3)}
+.btn-green:hover{transform:translateY(-2px)}
+.btn-orange{background:linear-gradient(135deg,#f9844a,#e63946);color:#fff}
+.btn-orange:hover{transform:translateY(-2px)}
+.btn-sm{width:auto;min-width:110px;padding:11px 20px;font-size:.95em}
+.btn-gray{background:rgba(255,255,255,.1);color:#ccc;border:2px solid rgba(255,255,255,.2)}
+.btn-gray:hover{background:rgba(255,255,255,.18)}
+
+/* MENU */
+.logo{font-size:4em;margin-bottom:5px}
+h1{font-size:2.8em;font-weight:900;color:#f9c74f;letter-spacing:2px;text-shadow:0 0 20px rgba(249,199,79,.4)}
+.tagline{color:#90e0ef;font-size:1.05em;margin-bottom:25px;text-align:center}
+.menu-buttons{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+
+/* LEVEL CHIPS */
+.level-select-label{color:#aaa;font-size:.9em;margin-bottom:8px;text-align:center}
+.level-chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.lchip{padding:10px 20px;border-radius:40px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#ccc;cursor:pointer;font-size:.95em;font-weight:600;transition:all .2s;user-select:none}
+.lchip:hover{border-color:rgba(249,199,79,.5);color:#f9c74f}
+.lchip.active{background:rgba(249,199,79,.18);border-color:#f9c74f;color:#f9c74f;box-shadow:0 0 14px rgba(249,199,79,.25)}
+
+/* SPECIALIST TOGGLE */
+.spec-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.2);border-radius:30px;padding:10px 20px;font-size:.95em;color:#ccc;margin-bottom:16px;cursor:pointer;transition:all .2s;user-select:none}
+.spec-badge:hover{background:rgba(255,255,255,.1)}
+.spec-badge.on{background:rgba(67,170,139,.15);border-color:#43aa8b;color:#43aa8b}
+.tog{width:36px;height:20px;background:rgba(255,255,255,.2);border-radius:10px;position:relative;transition:background .25s;flex-shrink:0}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#aaa;transition:all .25s}
+.spec-badge.on .tog{background:#43aa8b}
+.spec-badge.on .tog::after{left:19px;background:#fff}
+
+/* INSTRUCTIONS */
+.sec-title{font-size:1.8em;font-weight:800;color:#f9c74f;margin-bottom:20px;text-align:center}
+.instr-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px;width:100%;line-height:1.9;margin-bottom:20px}
+.instr-card p{margin:8px 0;font-size:.97em}
+.instr-card strong{color:#f9c74f}
+.lchip-sm{display:inline-block;background:rgba(144,224,239,.15);color:#90e0ef;border-radius:20px;padding:2px 12px;margin:2px;font-size:.88em;font-weight:600}
+.instr-spec{background:rgba(67,170,139,.08);border:1px solid rgba(67,170,139,.3);border-radius:12px;padding:12px 16px;margin-top:12px}
+.instr-spec p{color:#7ecfc0;font-size:.92em;margin:5px 0}
+.key-tag{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:1px 8px;font-family:monospace;font-size:.9em;color:#fff;margin:0 2px}
+
+/* SETTINGS */
+.setting-row{width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.06);border-radius:14px;padding:14px 20px;margin:8px 0}
+.setting-row label{color:#ccc;font-size:1em}
+select{padding:8px 12px;border-radius:10px;background:#1e3a4a;color:#fff;border:1.5px solid rgba(144,224,239,.35);font-size:1em;cursor:pointer}
+
+/* GAME */
+.hud{display:flex;justify-content:space-between;align-items:center;width:100%;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 18px;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.hud-badge{background:rgba(249,199,79,.2);color:#f9c74f;border-radius:20px;padding:5px 14px;font-weight:700;font-size:.9em}
+.hud-time{background:rgba(144,224,239,.2);color:#90e0ef;border-radius:20px;padding:5px 14px;font-weight:700;font-size:.9em}
+.hud-spec{background:rgba(67,170,139,.2);color:#43aa8b;border-radius:20px;padding:5px 14px;font-weight:700;font-size:.82em}
+.prog-wrap{width:100%;background:rgba(255,255,255,.08);border-radius:10px;height:7px;margin-bottom:18px;overflow:hidden}
+.prog-bar{height:100%;background:linear-gradient(90deg,#f9c74f,#f3722c);border-radius:10px;transition:width .4s}
+
+/* =============================================
+   FLASH BOX — švelniai pilkas fonas, juodos raidės
+   ============================================= */
+.flash-box{
+  width:100%;
+  height:185px;
+  background:#ececec;
+  border:2px solid #d0d0d0;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:3.4em;
+  font-weight:900;
+  letter-spacing:10px;
+  font-family:'Courier New',monospace;
+  margin-bottom:10px;
+  transition:all .25s;
+  user-select:none;
+  color:#111;
+  box-shadow:0 2px 16px rgba(0,0,0,.18);
+}
+/* Rodant žodį — šiek tiek šviesesnis, ryški juoda */
+.flash-box.lit{
+  background:#ffffff;
+  border-color:#aaa;
+  color:#000;
+  box-shadow:0 2px 24px rgba(0,0,0,.22);
+}
+/* Teisingai — švelniai žalia */
+.flash-box.ok{
+  background:#e8f5e9;
+  border-color:#81c784;
+  color:#1b5e20;
+}
+/* Neteisingai — švelniai raudona */
+.flash-box.fail{
+  background:#ffebee;
+  border-color:#ef9a9a;
+  color:#b71c1c;
+}
+
+/* Spec prompt */
+.spec-prompt{width:100%;text-align:center;padding:14px;background:rgba(67,170,139,.08);border:1.5px dashed rgba(67,170,139,.35);border-radius:14px;margin-bottom:10px;display:none}
+.spec-prompt p{color:#7ecfc0;font-size:.92em;margin:3px 0}
+.spec-prompt .krow{margin-top:8px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.kbig{padding:8px 18px;border-radius:10px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);font-size:.9em;font-family:monospace;color:#fff}
+.kbig.ok{background:rgba(67,170,139,.2);border-color:#43aa8b;color:#7ecfc0}
+.kbig.fail{background:rgba(233,69,96,.15);border-color:#e94560;color:#e86f82}
+
+.feedback{height:36px;display:flex;align-items:center;justify-content:center;font-size:1.3em;font-weight:700;margin-bottom:8px}
+.feedback.ok{color:#43aa8b}
+.feedback.fail{color:#e94560}
+
+.answer-wrap{width:100%;margin-bottom:14px}
+#ans{width:100%;padding:14px;font-size:2em;text-align:center;letter-spacing:10px;border:2px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(255,255,255,.08);color:#fff;font-family:'Courier New',monospace;text-transform:lowercase;outline:none;transition:border-color .2s}
+#ans:focus{border-color:#f9c74f}
+#ans:disabled{opacity:.5}
+
+.streak-row{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:12px}
+.dots{display:flex;gap:6px}
+.dot{width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .3s}
+.dot.on{background:#f9c74f;box-shadow:0 0 8px rgba(249,199,79,.6)}
+.show-btn{width:100%;padding:18px;font-size:1.25em;border:none;border-radius:18px;background:linear-gradient(135deg,#f9c74f,#f3722c);color:#1a1a2e;font-weight:900;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(249,199,79,.3);letter-spacing:1px}
+.show-btn:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(249,199,79,.45)}
+.show-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.game-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;margin-top:14px}
+
+/* RESULTS */
+.stars{font-size:3.2em;margin:15px 0}
+.big-score{font-size:2.8em;font-weight:900;color:#f9c74f}
+.sub-text{color:#90e0ef;margin:8px 0}
+.next-info{background:rgba(255,255,255,.06);border-radius:14px;padding:14px 20px;margin:15px 0;text-align:center;color:#ccc;width:100%}
+.result-btns{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:18px;width:100%}
+.final-stat{background:rgba(255,255,255,.06);border-radius:14px;padding:14px 20px;width:100%;text-align:center;margin:8px 0}
+.final-stat .lbl{color:#aaa;font-size:.9em}
+.final-stat .val{font-size:1.8em;font-weight:900;color:#f9c74f}
+</style>
+</head>
+<body>
+
+<!-- ===== MENU ===== -->
+<div id="s-menu" class="screen active">
+  <div class="logo">👁️</div>
+  <h1>VAS</h1>
+  <p class="tagline">Regėjimo Dėmesio Apimties Treniruoklis<br>
+    <small style="color:#607d8b;font-size:.85em">Lietuviškų raidžių vizualinė atmintis</small></p>
+
+  <p class="level-select-label">Pasirink pradžios lygį:</p>
+  <div class="level-chips">
+    <div class="lchip active" data-lvl="0" onclick="selectStartLvl(0)">3 raidės</div>
+    <div class="lchip" data-lvl="1" onclick="selectStartLvl(1)">4 raidės</div>
+    <div class="lchip" data-lvl="2" onclick="selectStartLvl(2)">5 raidžių</div>
+    <div class="lchip" data-lvl="3" onclick="selectStartLvl(3)">6 raidžių</div>
+  </div>
+
+  <div class="spec-badge" id="spec-toggle" onclick="toggleSpec()">
+    <div class="tog" id="tog-dot"></div>
+    <span>👩‍🏫 Specialisto režimas</span>
+    <span id="tog-txt" style="font-weight:700;min-width:28px">Off</span>
+  </div>
+
+  <div class="menu-buttons">
+    <button class="btn btn-start" onclick="startGame()">▶ &nbsp;Pradėti</button>
+    <button class="btn btn-info" onclick="show('s-instr')">📖 &nbsp;Instrukcija</button>
+    <button class="btn btn-settings" onclick="show('s-settings')">⚙️ &nbsp;Nustatymai</button>
+    <button class="btn btn-exit" onclick="doExit()">✕ &nbsp;Išeiti</button>
+  </div>
+</div>
+
+<!-- ===== EXIT ===== -->
+<div id="s-exit" class="screen" style="justify-content:center;min-height:60vh">
+  <div style="font-size:5em;margin-bottom:20px">👋</div>
+  <div style="font-size:2em;font-weight:900;color:#f9c74f;margin-bottom:10px">Iki pasimatymo!</div>
+  <div style="color:#90e0ef;font-size:1.1em;margin-bottom:30px">Puikiai dirbote šiandien!</div>
+  <button class="btn btn-info" onclick="show('s-menu')">← Grįžti</button>
+</div>
+
+<!-- ===== INSTRUCTIONS ===== -->
+<div id="s-instr" class="screen">
+  <div class="sec-title">📖 Kaip veikia VAS treniruoklis</div>
+  <div class="instr-card">
+    <p>👁️ Ekrane trumpam atsiras <strong>raidžių eilutė</strong> — žiūrėk atidžiai!</p>
+    <p>⚡ Raidės matomos labai trumpai — <strong>200 ms ir mažiau</strong>.</p>
+    <p>✍️ Po to surašyk tai, ką matei, ir spausk <strong>Enter</strong>.</p>
+    <p>🔄 Jei neįsimeni — spausk <strong>„Pakartoti"</strong>.</p>
+    <p>📈 Kas 5 teisingi iš eilės — laikas <strong>trumpėja 25 ms</strong>.</p>
+    <p>⚠️ 2 klaidos iš eilės — laikas <strong>grįžta +25 ms</strong>.</p>
+    <p style="margin-top:10px">🎯 <strong>4 lygiai, po 50 užduočių:</strong><br>
+      <span class="lchip-sm">3 raidės</span>
+      <span class="lchip-sm">4 raidės</span>
+      <span class="lchip-sm">5 raidžių</span>
+      <span class="lchip-sm">6 raidžių</span>
+    </p>
+    <p style="margin-top:10px">⏱ <strong>Laikas:</strong> 200 → 175 → 150 → 125 → 100 → 75 → <strong>50 ms</strong></p>
+    <div class="instr-spec">
+      <p><strong style="color:#43aa8b">👩‍🏫 Specialisto režimas</strong></p>
+      <p>Abu sėdi prie kompiuterio. Žodis mirkstelėja — <strong>vaikas pasako žodžiu.</strong></p>
+      <p><span class="key-tag">Tab</span> arba <span class="key-tag">Enter</span> — teisingai ✓</p>
+      <p><span class="key-tag">Backspace</span> arba <span class="key-tag">Esc</span> — neteisingai ✗</p>
+      <p>Nereikia nieko rašyti — sesija vyksta greitai.</p>
+    </div>
+  </div>
+  <button class="btn btn-info" onclick="show('s-menu')">← Grįžti į meniu</button>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div id="s-settings" class="screen">
+  <div class="sec-title">⚙️ Nustatymai</div>
+  <div class="setting-row">
+    <label>📍 Pradinis ekspozicijos laikas</label>
+    <select id="cfg-start">
+      <option value="300">300 ms (pradedantiesiems)</option>
+      <option value="250">250 ms</option>
+      <option value="200" selected>200 ms (rekomenduojamas)</option>
+      <option value="150">150 ms</option>
+      <option value="100">100 ms (ekspertas)</option>
+    </select>
+  </div>
+  <div class="setting-row">
+    <label>🎯 Minimalus laikas</label>
+    <select id="cfg-min">
+      <option value="50" selected>50 ms</option>
+      <option value="75">75 ms</option>
+      <option value="100">100 ms</option>
+    </select>
+  </div>
+  <div class="setting-row">
+    <label>🔢 Sumažėjimo žingsnis</label>
+    <select id="cfg-step">
+      <option value="25" selected>25 ms</option>
+      <option value="50">50 ms</option>
+    </select>
+  </div>
+  <div class="setting-row">
+    <label>✓ Teisingų iš eilės iki sumažėjimo</label>
+    <select id="cfg-streak">
+      <option value="3">3 (greičiau)</option>
+      <option value="5" selected>5 (rekomenduojama)</option>
+      <option value="7">7 (konservatyvu)</option>
+    </select>
+  </div>
+  <div style="background:rgba(144,224,239,.08);border-radius:12px;padding:14px;width:100%;color:#90e0ef;font-size:.88em;margin:12px 0;line-height:1.7">
+    💡 VAS standartas — <strong>200 ms</strong>. Treniruojant mažinama iki <strong>50 ms</strong>.
+  </div>
+  <button class="btn btn-green" onclick="saveSettings()">💾 &nbsp;Išsaugoti</button>
+  <div style="height:10px"></div>
+  <button class="btn btn-gray btn-sm" onclick="show('s-menu')">← Grįžti</button>
+</div>
+
+<!-- ===== GAME ===== -->
+<div id="s-game" class="screen">
+  <div class="hud">
+    <span class="hud-badge" id="g-level">1 lygis · 3 raidės</span>
+    <span id="g-prog" style="color:#ccc;font-size:.9em">1 / 50</span>
+    <span class="hud-time" id="g-time">⏱ 200 ms</span>
+    <span class="hud-spec" id="g-specbadge" style="display:none">👩‍🏫 Spec. režimas</span>
+  </div>
+  <div class="prog-wrap"><div class="prog-bar" id="g-pbar" style="width:0%"></div></div>
+
+  <div class="flash-box" id="fbox"><span id="ftxt"></span></div>
+
+  <div class="spec-prompt" id="spec-prompt">
+    <p>Vaikas sako atsakymą žodžiu. Specialistas vertina:</p>
+    <div class="krow">
+      <span class="kbig ok">Tab / Enter &nbsp;✓</span>
+      <span class="kbig fail">Backspace / Esc &nbsp;✗</span>
+    </div>
+  </div>
+
+  <div class="feedback" id="fb"></div>
+
+  <div class="answer-wrap" id="ans-wrap">
+    <input id="ans" type="text" placeholder="·····" maxlength="6"
+      autocomplete="off" autocorrect="off" spellcheck="false" disabled />
+  </div>
+
+  <div class="streak-row">
+    <span style="font-size:.85em;color:#888">Serija:</span>
+    <div class="dots" id="dots"></div>
+    <span id="g-score" style="color:#f9c74f;font-size:.9em;font-weight:700">✓ 0</span>
+  </div>
+
+  <button class="show-btn" id="showbtn" onclick="doShow()">👁️ &nbsp;Rodyti</button>
+
+  <div class="game-btns">
+    <button class="btn btn-orange btn-sm" id="repbtn" onclick="doRepeat()" disabled>🔄 Pakartoti</button>
+    <button class="btn btn-green btn-sm" id="chkbtn" onclick="doCheck()" disabled>✓ Tikrinti</button>
+    <button class="btn btn-gray btn-sm" onclick="show('s-menu')">🏠 Meniu</button>
+    <button class="btn btn-exit btn-sm" onclick="doExit()">✕ Išeiti</button>
+  </div>
+</div>
+
+<!-- ===== LEVEL COMPLETE ===== -->
+<div id="s-lvl" class="screen">
+  <div class="sec-title">🎉 Lygis baigtas!</div>
+  <div class="stars" id="lv-stars">⭐⭐⭐</div>
+  <div class="big-score" id="lv-score">42 / 50</div>
+  <div class="sub-text" id="lv-pct">84% teisingų</div>
+  <div class="next-info" id="lv-next"></div>
+  <div class="result-btns">
+    <button class="btn btn-start" id="lv-nextbtn" onclick="nextLevel()">➡ &nbsp;Kitas lygis</button>
+    <button class="btn btn-info" onclick="startGame()">🔄 Pradėti iš naujo</button>
+    <button class="btn btn-gray btn-sm" onclick="show('s-menu')">🏠 Meniu</button>
+  </div>
+</div>
+
+<!-- ===== GAME COMPLETE ===== -->
+<div id="s-done" class="screen">
+  <div style="font-size:5em;margin:15px 0">🏆</div>
+  <div class="sec-title" style="color:#f9c74f">Visi lygiai įveikti!</div>
+  <div class="final-stat"><div class="lbl">Bendras rezultatas</div><div class="val" id="dn-total">168 / 200</div></div>
+  <div class="final-stat"><div class="lbl">Teisingų atsakymų</div><div class="val" id="dn-pct">84%</div></div>
+  <div class="final-stat"><div class="lbl">Pasiektas ekspozicijos laikas</div><div class="val" id="dn-time">75 ms</div></div>
+  <div style="padding:14px;background:rgba(144,224,239,.08);border-radius:14px;width:100%;text-align:center;color:#90e0ef;font-size:.9em;line-height:1.6;margin-top:8px">
+    📊 Laiko pažanga: 200 ms → <span id="dn-path">…</span>
+  </div>
+  <div class="result-btns">
+    <button class="btn btn-start" onclick="startGame()">🔄 Žaisti iš naujo</button>
+    <button class="btn btn-gray btn-sm" onclick="show('s-menu')">🏠 Meniu</button>
+  </div>
+</div>
+
+<script>
+const W = [
+  ["bal","dar","gėl","kim","lom","mar","nel","par","ras","šel",
+   "tel","van","žir","bur","dol","gam","kir","lus","man","nėr",
+   "pil","ral","sot","tun","vel","žam","ban","dės","gol","kit",
+   "lam","mir","nor","pat","rul","sol","tar","ven","žol","bos",
+   "dur","gin","kės","lon","mat","nul","per","rim","set","tol"],
+  ["bala","dare","gėli","kima","lome","mara","nele","pari","rasa","šeli",
+   "tela","vane","žiri","bura","dole","gami","kira","luse","mani","nėra",
+   "pile","rali","sota","tune","veli","žama","bane","dėsi","gola","kite",
+   "lami","mira","nore","pati","rula","sole","tari","vena","žole","bosi",
+   "dura","gine","kėsa","lone","mati","nula","pere","rimi","seta","tole"],
+  ["balas","darem","gėlin","kimas","lomek","maran","neles","parim","rasak","šelin",
+   "telam","vanek","žiras","buran","dolem","gamik","kiran","lusem","manis","nėram",
+   "pilek","ralis","sotan","tunem","velik","žamas","banen","dėsim","golak","kiten",
+   "lamis","miram","norek","patin","rulem","solik","tarin","venam","žoles","bosik",
+   "duran","ginem","kėsan","lonit","matim","nulak","peren","rimis","setam","tolek"],
+  ["balase","daremi","gėlina","kimasė","lomeka","marane","nelesi","parima","rasake","šelina",
+   "telame","vaneki","žirasa","burane","dolemi","gamika","kirane","lusemi","manisa","nėrame",
+   "pileki","ralisa","sotane","tunemi","velika","žamese","baneni","dėsima","golake","kiteni",
+   "lamisa","mirame","noreki","patina","ruleme","solika","tarine","venami","žolesa","bosike",
+   "durane","ginemi","kėsane","lonita","matimi","nulake","pereni","rimisa","setame","toleka"]
+];
+const LEVEL_NAMES=["1 lygis · 3 raidės","2 lygis · 4 raidės","3 lygis · 5 raidžių","4 lygis · 6 raidžių"];
+const TOTAL=50;
+let CFG={start:200,min:50,step:25,streakNeeded:5};
+let startLvl=0,specMode=false;
+let lvl,idx,word,expTime,score,totalScore,streak,wrongStreak,repeated,shuffled,state,allTimes;
+
+function saveSettings(){
+  CFG.start=parseInt(document.getElementById('cfg-start').value);
+  CFG.min=parseInt(document.getElementById('cfg-min').value);
+  CFG.step=parseInt(document.getElementById('cfg-step').value);
+  CFG.streakNeeded=parseInt(document.getElementById('cfg-streak').value);
+  show('s-menu');
+}
+function selectStartLvl(l){
+  startLvl=l;
+  document.querySelectorAll('.lchip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('[data-lvl="'+l+'"]').classList.add('active');
+}
+function toggleSpec(){
+  specMode=!specMode;
+  document.getElementById('spec-toggle').className='spec-badge'+(specMode?' on':'');
+  document.getElementById('tog-txt').textContent=specMode?'On':'Off';
+}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function doExit(){show('s-exit')}
+function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function startGame(){
+  lvl=startLvl;totalScore=0;allTimes=[];expTime=CFG.start;startLevel();
+}
+function startLevel(){
+  idx=0;score=0;streak=0;wrongStreak=0;shuffled=shuffle(W[lvl]);
+  show('s-game');buildDots();
+  document.getElementById('ans-wrap').style.display=specMode?'none':'block';
+  document.getElementById('chkbtn').style.display=specMode?'none':'inline-block';
+  document.getElementById('g-specbadge').style.display=specMode?'inline-block':'none';
+  loadWord();
+}
+function buildDots(){
+  const d=document.getElementById('dots');d.innerHTML='';
+  for(let i=0;i<CFG.streakNeeded;i++){const s=document.createElement('div');s.className='dot';s.id='d'+i;d.appendChild(s)}
+}
+function loadWord(){
+  word=shuffled[idx];state='idle';
+  document.getElementById('fbox').className='flash-box';
+  document.getElementById('ftxt').textContent='';
+  document.getElementById('fb').textContent='';document.getElementById('fb').className='feedback';
+  document.getElementById('spec-prompt').style.display='none';
+  document.getElementById('ans').value='';document.getElementById('ans').disabled=true;
+  document.getElementById('showbtn').disabled=false;
+  document.getElementById('repbtn').disabled=true;
+  document.getElementById('chkbtn').disabled=true;
+  repeated=false;updateHUD();
+}
+function updateHUD(){
+  document.getElementById('g-level').textContent=LEVEL_NAMES[lvl];
+  document.getElementById('g-prog').textContent=(idx+1)+' / '+TOTAL;
+  document.getElementById('g-pbar').style.width=((idx/TOTAL)*100)+'%';
+  document.getElementById('g-time').textContent='⏱ '+expTime+' ms';
+  document.getElementById('g-score').textContent='✓ '+score;
+  for(let i=0;i<CFG.streakNeeded;i++){const d=document.getElementById('d'+i);if(d)d.className='dot'+(i<streak?' on':'')}
+}
+function doShow(){
+  if(state!=='idle')return;
+  state='showing';
+  document.getElementById('showbtn').disabled=true;
+  document.getElementById('repbtn').disabled=true;
+  document.getElementById('chkbtn').disabled=true;
+  document.getElementById('ans').disabled=true;
+  document.getElementById('spec-prompt').style.display='none';
+  document.getElementById('fbox').className='flash-box lit';
+  document.getElementById('ftxt').textContent=word.toUpperCase();
+  setTimeout(()=>{
+    document.getElementById('fbox').className='flash-box';
+    document.getElementById('ftxt').textContent='';
+    state='input';
+    if(specMode){
+      document.getElementById('spec-prompt').style.display='block';
+      document.getElementById('repbtn').disabled=false;
+      document.activeElement&&document.activeElement.blur();
+    } else {
+      const a=document.getElementById('ans');a.disabled=false;a.focus();
+      document.getElementById('repbtn').disabled=false;
+      document.getElementById('chkbtn').disabled=false;
+    }
+  },expTime);
+}
+function doRepeat(){
+  if(state!=='input')return;
+  repeated=true;state='idle';
+  document.getElementById('repbtn').disabled=true;
+  document.getElementById('chkbtn').disabled=true;
+  document.getElementById('spec-prompt').style.display='none';
+  document.getElementById('ans').disabled=true;document.getElementById('ans').value='';
+  setTimeout(doShow,350);
+}
+function doCheck(){if(state!=='input'||specMode)return;processResult(document.getElementById('ans').value.trim().toLowerCase()===word.toLowerCase())}
+function processResult(ok){
+  state='checking';
+  document.getElementById('repbtn').disabled=true;document.getElementById('chkbtn').disabled=true;
+  document.getElementById('ans').disabled=true;document.getElementById('spec-prompt').style.display='none';
+  const fbox=document.getElementById('fbox'),fb=document.getElementById('fb');
+  if(ok){
+    score++;streak++;wrongStreak=0;
+    fbox.className='flash-box ok';
+    document.getElementById('ftxt').textContent=specMode?'✓':word.toUpperCase();
+    fb.textContent='✓ Teisingai!';fb.className='feedback ok';
+    if(!repeated&&streak>=CFG.streakNeeded){
+      streak=0;
+      if(expTime>CFG.min){expTime=Math.max(CFG.min,expTime-CFG.step);fb.textContent='✓ Teisingai!  ⏱→ '+expTime+' ms';allTimes.push(expTime)}
+    }
+  } else {
+    wrongStreak++;streak=0;fbox.className='flash-box fail';
+    document.getElementById('ftxt').textContent=specMode?'✗':word.toUpperCase();
+    fb.textContent=specMode?'✗ Neteisingai':'✗ Buvo: '+word.toUpperCase();fb.className='feedback fail';
+    if(wrongStreak>=2){wrongStreak=0;if(expTime<CFG.start)expTime=Math.min(CFG.start,expTime+CFG.step)}
+  }
+  updateHUD();
+  setTimeout(()=>{idx++;if(idx>=TOTAL)lvlComplete();else loadWord();},1400);
+}
+function lvlComplete(){
+  totalScore+=score;const pct=Math.round((score/TOTAL)*100);
+  document.getElementById('lv-stars').textContent=pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':'⭐';
+  document.getElementById('lv-score').textContent=score+' / '+TOTAL;
+  document.getElementById('lv-pct').textContent=pct+'% teisingų atsakymų';
+  if(lvl<3){document.getElementById('lv-next').textContent='⏭ Kitas lygis: '+(lvl+4+1)+' raidės';document.getElementById('lv-nextbtn').style.display='block';}
+  else{document.getElementById('lv-next').textContent='🏆 Visi lygiai užbaigti!';document.getElementById('lv-nextbtn').style.display='none';setTimeout(gameComplete,2500)}
+  show('s-lvl');
+}
+function nextLevel(){lvl++;startLevel()}
+function gameComplete(){
+  const maxScore=(4-startLvl)*50,pct=Math.round((totalScore/maxScore)*100);
+  document.getElementById('dn-total').textContent=totalScore+' / '+maxScore;
+  document.getElementById('dn-pct').textContent=pct+'%';
+  document.getElementById('dn-time').textContent=expTime+' ms';
+  document.getElementById('dn-path').textContent=allTimes.length?allTimes.join(' → ')+' ms':'200 ms';
+  show('s-done');
+}
+document.addEventListener('keydown',e=>{
+  if(specMode&&state==='input'){
+    if(e.key==='Tab'||e.key==='Enter'){e.preventDefault();processResult(true)}
+    else if(e.key==='Backspace'||e.key==='Escape'){e.preventDefault();processResult(false)}
+    return;
+  }
+  if(!specMode&&state==='input'&&e.key==='Enter')doCheck();
+  if(state==='idle'&&(e.key==='Enter'||e.key===' ')&&document.activeElement.id!=='ans'){e.preventDefault();doShow()}
+});
+</script>
+</body>
+</html>
